@@ -29,6 +29,6 @@ build/
 .vscode/
 
 *.properties
-/test
+*/test
 mvnw
 mvnw.cmd
