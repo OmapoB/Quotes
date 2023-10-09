@@ -1,25 +1,31 @@
 package ru.omarov.quotes.repositories;
 
 import com.google.protobuf.GeneratedMessageV3;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 import ru.omarov.quotes.entity.Position;
 import ru.omarov.quotes.entity.PositionType;
 import ru.tinkoff.piapi.contract.v1.MoneyValue;
 import ru.tinkoff.piapi.contract.v1.Quotation;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
-public class PositionRepoImpl {
-    @PersistenceContext
-    private EntityManager entityManager;
+@Repository
+public class PositionDTO {
+
+    @Autowired
+    private PositionRepo repos;
+
+    public PositionDTO() {
+    }
 
     public <T extends GeneratedMessageV3> Position create(T position) {
         Position newPosition = new Position();
 
         newPosition.setType(Arrays.stream(PositionType.values())
-                .filter(s->s.getaClass()==position.getClass())
+                .filter(s -> s.getaClass() == position.getClass())
                 .findFirst().orElse(null));
         newPosition
                 .setFigi(position.getField(position.getDescriptorForType()
@@ -48,60 +54,60 @@ public class PositionRepoImpl {
         newPosition
                 .setSector(position.getField(position.getDescriptorForType()
                         .findFieldByName("sector")).toString());
+
+        MoneyValue moneyValue = (MoneyValue) position.getField(position.getDescriptorForType()
+                .findFieldByName("nominal"));
         newPosition
-                .setNominal((MoneyValue) position.getField(position.getDescriptorForType()
-                        .findFieldByName("nominal")));
+                .setNominal(moneyValue.getUnits() == 0 && moneyValue.getNano() == 0 ?
+                        BigDecimal.ZERO : BigDecimal.valueOf(moneyValue.getUnits())
+                        .add(BigDecimal.valueOf(moneyValue.getNano(), 9)));
+
+        Quotation quotation =(Quotation) position.getField(position.getDescriptorForType()
+                .findFieldByName("min_price_increment"));
         newPosition
-                .setMinPriceIncrement((Quotation) position.getField(position.getDescriptorForType()
-                        .findFieldByName("min_price_increment")));
+                .setMinPriceIncrement(quotation.getUnits() == 0 && quotation.getNano() == 0 ?
+                        BigDecimal.ZERO : BigDecimal.valueOf(quotation.getUnits())
+                        .add(BigDecimal.valueOf(quotation.getNano(), 9)));
         newPosition
                 .setUid(position.getField(position.getDescriptorForType()
                         .findFieldByName("uid")).toString());
-        entityManager.persist(newPosition);
+        repos.save(newPosition);
         return newPosition;
     }
 
-
-    public Position get(Position position) {
-        return null;
+    public <T extends GeneratedMessageV3> Position update(T position) {
+        return create(position);
     }
 
+    public List<Position> getAll() {
+        return repos.findAll();
+    }
 
     public List<Position> getByType(PositionType type) {
-        return null;
+        return repos.getByType(type);
     }
 
-
     public Position getByUid(String uid) {
-        return null;
+        return repos.getByUid(uid);
     }
 
     public Position getByName(String name) {
-        return null;
+        return repos.getByName(name);
     }
 
-
     public List<Position> getByCurrency(String currency) {
-        return null;
+        return repos.getByCurrency(currency);
     }
 
     public Position getByIsin(String isin) {
-        return null;
+        return repos.getByIsin(isin);
     }
 
     public Position getByExchange(String exchange) {
-        return null;
+        return repos.getByExchange(exchange);
     }
 
     public Position getBySector(String sector) {
-        return null;
-    }
-
-    public Position update(Position position) {
-        return null;
-    }
-
-    public Boolean delete(Position position) {
-        return null;
+        return repos.getBySector(sector);
     }
 }

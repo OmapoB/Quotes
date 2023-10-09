@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import ru.tinkoff.piapi.contract.v1.MoneyValue;
 import ru.tinkoff.piapi.contract.v1.Quotation;
 
+import java.math.BigDecimal;
+
 @Entity
 @Data
 @Builder
@@ -36,9 +38,9 @@ public class Position {
     // Сектор экономики.
     private String sector;
     // Номинал.
-    private MoneyValue nominal;
+    private BigDecimal nominal;
     // Шаг цены
-    private Quotation minPriceIncrement;
+    private BigDecimal minPriceIncrement;
     // Уникальный идентификатор инструмента.
     @Id
     private String uid;
