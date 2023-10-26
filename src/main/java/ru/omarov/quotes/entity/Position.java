@@ -1,32 +1,24 @@
 package ru.omarov.quotes.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.tinkoff.piapi.contract.v1.MoneyValue;
-import ru.tinkoff.piapi.contract.v1.Quotation;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Position {
     // Тип позиции
     private PositionType type;
-    // Figi-идентификатор инструмента.
-    private String figi;
     // Тикер инструмента.
     private String ticker;
     // Класс-код (секция торгов).
     private String classCode;
-    // Isin-идентификатор инструмента.
-    private String isin;
     // Возможно совершение операций только на количества ценной бумаги, кратные параметру lot.
     private Integer lot;
     // Валюта расчётов.

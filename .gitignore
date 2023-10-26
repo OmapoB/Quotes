@@ -29,6 +29,7 @@ build/
 .vscode/
 
 *.properties
-*/test
 mvnw
 mvnw.cmd
+/src/test/
+/qoutes_front/

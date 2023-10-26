@@ -1,17 +1,30 @@
 package ru.omarov.quotes.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import ru.omarov.quotes.entity.Position;
 import ru.omarov.quotes.entity.PositionType;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+@Repository
 public interface PositionRepo extends JpaRepository<Position, String> {
-    public List<Position> getByType(PositionType type);
-    public Position getByUid(String uid);
-    public Position getByName(String name);
-    public List<Position> getByCurrency(String currency);
-    public Position getByIsin(String isin);
-    public Position getByExchange(String exchange);
-    public Position getBySector(String sector);
+    Page<Position> findByType(PositionType type, PageRequest limit);
+
+    Position findByUid(String uid);
+
+    Position findByName(String name);
+
+    List<Position> findByCurrency(String currency);
+
+    List<Position> findByExchange(String exchange);
+
+    List<Position> findByNominal(BigDecimal price);
+
+    List<Position> findBySector(String sector);
+
+    List<Position> findByTicker(String ticker);
 }
