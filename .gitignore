@@ -32,4 +32,5 @@ build/
 mvnw
 mvnw.cmd
 /src/test/
-/qoutes_front/
+/qoutes_front/dist/
+/qoutes_front/node_modules

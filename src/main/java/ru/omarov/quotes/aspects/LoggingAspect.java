@@ -10,9 +10,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class LoggingAspect {
 
-    private final String all = "execution(* * *(*))";
-    private final String allGet = "execution(public * get*(*))";
-
     @Pointcut("execution(public * ru.omarov.quotes.*.*get*(..))")
     private void setAllGet() {
     }

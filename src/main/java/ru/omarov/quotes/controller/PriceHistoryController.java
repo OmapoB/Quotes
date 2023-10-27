@@ -17,19 +17,22 @@ public class PriceHistoryController {
     public PriceHistoryController(PriceHistoryService priceHistoryService) {
         this.priceHistoryService = priceHistoryService;
     }
+
     @CrossOrigin
     @GetMapping("/")
     public Page<PriceHistory> getHistory(@RequestParam("p") Integer page,
                                          @RequestParam("els") Integer elements) {
         return priceHistoryService.getAll(page, elements);
     }
+
     @CrossOrigin
     @GetMapping("/diff")
     public BigDecimal getDiffBetween(LocalDate start, LocalDate stop, String uid) {
         return priceHistoryService.getDiffBetween(start, stop, uid);
     }
+
     @CrossOrigin
-    @GetMapping("/s")
+    @GetMapping("/price_history_between")
     public List<PriceHistory> getPriceHistoryByUidBetween(String uid,
                                                           LocalDate start,
                                                           LocalDate stop) {

@@ -21,18 +21,6 @@ public class PriceHistoryService {
         this.priceHistoryRepo = priceHistoryRepo;
     }
 
-//    @Transactional
-//    public void initializePriceHistory(String uid, Map<LocalDate, BigDecimal> priceHistory) {
-//        Position position = positionService.getByUid(uid);
-//        for (Map.Entry<LocalDate, BigDecimal> priceAt :
-//                priceHistory.entrySet()) {
-//            PriceHistory price = new PriceHistory();
-//            price.setDay(priceAt.getKey());
-//            price.setNominal(priceAt.getValue());
-//            price.setPosition(position);
-//        }
-//    }
-
     @Transactional
     public PriceHistory save(PriceHistory priceHistory) {
         return priceHistoryRepo.saveAndFlush(priceHistory);

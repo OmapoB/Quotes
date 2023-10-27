@@ -1,0 +1,30 @@
+version: "3.8"
+services:
+  client-frontend:
+    image: front:latest
+    build: ./qoutes_front
+    restart: always
+    ports:
+      - "8000:8000"
+
+  client-backend:
+    image: quotes:0.5
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - service-db
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://service-db/postgres
+
+  service-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5432:5432"
+    restart: unless-stopped

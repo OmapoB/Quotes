@@ -2,18 +2,15 @@ package ru.omarov.quotes.controller;
 
 import jakarta.annotation.PreDestroy;
 import org.java_websocket.client.WebSocketClient;
-import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import ru.omarov.quotes.entity.Position;
 import ru.omarov.quotes.entity.PositionType;
 import ru.omarov.quotes.services.PositionService;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -22,7 +19,6 @@ import java.util.concurrent.ExecutionException;
 public class PositionController {
     private final PositionService positionService;
     private CompletableFuture<WebSocketClient> connection;
-
 
     public PositionController(PositionService positionService) {
 
@@ -40,6 +36,7 @@ public class PositionController {
     public List<Position> getBySector(@PathVariable("sector") String param) {
         return positionService.getBySector(param);
     }
+
     @CrossOrigin
     @GetMapping("/exchanges/{exchange}")
     public List<Position> getByExchange(@PathVariable("exchange") String param) {
@@ -53,6 +50,7 @@ public class PositionController {
                                     @RequestParam("el") Integer elements) {
         return positionService.getByType(PositionType.valueOf(param), page, elements);
     }
+
     @CrossOrigin
     @GetMapping("/currencies/{currency}")
     public List<Position> getByCurrency(@PathVariable("currency") String param) {
@@ -64,6 +62,7 @@ public class PositionController {
     public List<Position> getByTicker(@PathVariable("ticker") String ticker) {
         return positionService.getByTicker(ticker);
     }
+
     @CrossOrigin
     @GetMapping("/names/{name}")
     public Position getByName(@PathVariable("name") String param) {
@@ -79,8 +78,7 @@ public class PositionController {
     @CrossOrigin
     @GetMapping("/get_all")
     public Page<Position> getPositions(@RequestParam("p") Integer page,
-                                       @RequestParam("els") Integer elements)
-            throws IOException {
+                                       @RequestParam("els") Integer elements) {
         return positionService.getAll(page, elements);
     }
 
@@ -91,11 +89,13 @@ public class PositionController {
         if (connection != null) connection.get().closeBlocking();
         connection = positionService.subscribeOnPriceChangeByUid(uids);
     }
+
     @CrossOrigin
     @PostMapping("/close")
     public void close() throws ExecutionException, InterruptedException {
         if (connection != null) connection.get().closeBlocking();
     }
+
     @CrossOrigin
     @PreDestroy
     private void destroy() throws ExecutionException, InterruptedException {
