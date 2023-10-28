@@ -1,4 +1,3 @@
-![image](https://github.com/OmapoB/Quotes/assets/61049551/bc24ad82-6bcb-4d07-a294-31eb092171cd)![image](https://github.com/OmapoB/Quotes/assets/61049551/6dd4d034-fd26-4aa0-a440-c84101ce667c)Композ ап сначала
 Потом инит запрос кидаешь на localhost:8080/init0 и localhost:8080/init1
 подождать минут 10 если есть время, если нет то хотябы минуту.
 Дальше localhost:8000/positions
