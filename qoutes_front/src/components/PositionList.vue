@@ -14,7 +14,6 @@
 
 <script>
 import PositionRow from "@/components/PositionRow";
-import axios from "axios";
 
 export default {
     name: "PositionList",
@@ -52,11 +51,9 @@ export default {
         },
         onClose(event) {
             console.log("Connection closed")
-            axios.post("http://localhost:8080/positions/close")
         },
         test() {
-            axios.post("http://localhost:8080/positions/subscribe",
-                this.positions.map(s => s.uid))
+            this.connection.send(this.positions.map(s => s.uid))
             console.log(Array.isArray(this.positions.map(s => s.uid)))
         }
     }

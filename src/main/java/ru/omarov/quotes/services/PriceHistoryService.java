@@ -1,46 +1,37 @@
 package ru.omarov.quotes.services;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.omarov.quotes.entity.PriceHistory;
+import ru.omarov.quotes.filtres.PriceHistoryFilter;
 import ru.omarov.quotes.repositories.PriceHistoryRepo;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
-public class PriceHistoryService {
+public class PriceHistoryService extends AbstractService<PriceHistory> {
 
-    private PriceHistoryRepo priceHistoryRepo;
+    private final PriceHistoryRepo priceHistoryRepo;
 
-    public PriceHistoryService(PriceHistoryRepo priceHistoryRepo) {
+    public PriceHistoryService(PriceHistoryRepo priceHistoryRepo, PriceHistoryFilter priceHistoryFilter) {
         this.priceHistoryRepo = priceHistoryRepo;
+        super.filter = priceHistoryFilter;
     }
 
-    @Transactional
-    public PriceHistory save(PriceHistory priceHistory) {
-        return priceHistoryRepo.saveAndFlush(priceHistory);
+    public void save(PriceHistory priceHistory) {
+        priceHistoryRepo.save(priceHistory);
     }
 
-    public Page<PriceHistory> getAll(Integer page, Integer elements) {
-        return priceHistoryRepo.findAll(PageRequest.of(page, elements));
-    }
-
-    public List<PriceHistory> getAllBetweenByUid(String uid, LocalDate start, LocalDate end) {
-        return priceHistoryRepo.findAllByPositionUidAndDayBetween(uid, start, end);
-    }
-
-    public BigDecimal getDiffBetween(LocalDate start, LocalDate stop, String uid) {
-        BigDecimal nominal = priceHistoryRepo
-                .findByDayAndPositionUid(start, uid)
+    public BigDecimal getPercentageDiffBetween(String uid, LocalDate start, LocalDate stop) {
+        BigDecimal startPrice = priceHistoryRepo
+                .findByPositionUidAndDay(uid, start)
                 .getNominal();
-        BigDecimal nominal1 = priceHistoryRepo
-                .findByDayAndPositionUid(stop, uid)
+        BigDecimal stopPrice = priceHistoryRepo
+                .findByPositionUidAndDay(uid, stop)
                 .getNominal();
-        return nominal1.divide(nominal, RoundingMode.HALF_EVEN).subtract(BigDecimal.valueOf(1L));
+        return stopPrice
+                .divide(startPrice, RoundingMode.HALF_EVEN)
+                .subtract(BigDecimal.valueOf(1L));
     }
 }

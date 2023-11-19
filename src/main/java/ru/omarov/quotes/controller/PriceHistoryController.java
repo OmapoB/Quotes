@@ -1,5 +1,6 @@
 package ru.omarov.quotes.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import ru.omarov.quotes.entity.PriceHistory;
@@ -7,7 +8,7 @@ import ru.omarov.quotes.services.PriceHistoryService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/history")
@@ -18,24 +19,21 @@ public class PriceHistoryController {
         this.priceHistoryService = priceHistoryService;
     }
 
+    @Operation(summary = "получение разницы в цене в процентах")
     @CrossOrigin
-    @GetMapping("/")
-    public Page<PriceHistory> getHistory(@RequestParam("p") Integer page,
-                                         @RequestParam("els") Integer elements) {
-        return priceHistoryService.getAll(page, elements);
+    @GetMapping("/percentage_difference")
+    public BigDecimal getPercentageDifferenceBetween(
+            @RequestParam String uid,
+            @RequestParam LocalDate start,
+            @RequestParam LocalDate stop) {
+        return priceHistoryService.getPercentageDiffBetween(uid, start, stop);
     }
 
+    @Operation(summary = "постраничное получение отфильтрованной истории цен по дням")
     @CrossOrigin
-    @GetMapping("/diff")
-    public BigDecimal getDiffBetween(LocalDate start, LocalDate stop, String uid) {
-        return priceHistoryService.getDiffBetween(start, stop, uid);
-    }
-
-    @CrossOrigin
-    @GetMapping("/price_history_between")
-    public List<PriceHistory> getPriceHistoryByUidBetween(String uid,
-                                                          LocalDate start,
-                                                          LocalDate stop) {
-        return priceHistoryService.getAllBetweenByUid(uid, start, stop);
+    @GetMapping("")
+    public Page<PriceHistory> getFilteredHistory(
+            @RequestParam Map<String, String> filterBy) {
+        return priceHistoryService.getFilteredElements(filterBy);
     }
 }

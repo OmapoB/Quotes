@@ -48,16 +48,21 @@ export default {
     methods: {
         async findPositions(searchQuery) {
             if (searchQuery !== "") {
-                const response = await axios.get(position_service.concat("/tickers/" + searchQuery.toUpperCase()))
-                this.positions = response.data
+                const response = await axios.get(position_service, {
+                    params: {
+                        ticker: searchQuery.toUpperCase()
+                    }
+                })
+                this.positions = response.data.content
+                this.totalPages = response.data.totalPages
             }
         },
         async getPosts() {
-            const response = await axios.get(position_service.concat("/get_all"),
+            const response = await axios.get(position_service,
                 {
-                    params: {
-                        p: this.page,
-                        els: this.limit
+                    data: {
+                        pageNumber: this.page,
+                        pageSize: this.limit
                     }
                 })
             this.positions = response.data.content

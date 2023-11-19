@@ -1,6 +1,9 @@
 package ru.omarov.quotes.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,12 +19,11 @@ public class PriceHistory {
     private Long id;
     private LocalDate day;
     private BigDecimal nominal;
-    @ManyToOne
-    private Position position;
+    private String positionUid;// сделать uid убрать связь
 
-    public PriceHistory(LocalDate day, BigDecimal nominal, Position position) {
+    public PriceHistory(LocalDate day, BigDecimal nominal, String position) {
         this.day = day;
         this.nominal = nominal;
-        this.position = position;
+        this.positionUid = position;
     }
 }

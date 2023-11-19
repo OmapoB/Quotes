@@ -1,7 +1,6 @@
 package ru.omarov.quotes.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +12,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Position {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     // Тип позиции
     private PositionType type;
     // Тикер инструмента.
@@ -34,6 +36,7 @@ public class Position {
     // Шаг цены
     private BigDecimal minPriceIncrement;
     // Уникальный идентификатор инструмента.
-    @Id
+    @Column(unique = true)
     private String uid;
 }
+

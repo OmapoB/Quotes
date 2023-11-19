@@ -1,67 +1,71 @@
 package ru.omarov.quotes.websocket;
 
+import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
 import ru.omarov.quotes.entity.Position;
-import ru.omarov.quotes.services.PositionService;
+import ru.omarov.quotes.websocket.handlers.WebSocketPriceRefreshHandler;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Map;
 
-
+@Slf4j
 public class WebSocketClientImpl extends WebSocketClient {
 
-    private PositionService positionService;
+    private final WebSocketPriceRefreshHandler handler;
 
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(WebSocketClientImpl.class);
 
     public WebSocketClientImpl(URI serverUri,
                                Map<String, String> httpHeaders,
-                               PositionService positionService) {
+                               WebSocketPriceRefreshHandler handler) {
         super(serverUri, httpHeaders);
-        this.positionService = positionService;
+        this.handler = handler;
     }
 
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        LOGGER.info("Соединение установлено");
+        log.info("""
+                Соединение установлено.
+                Код {}.
+                """, serverHandshake.getHttpStatus()); // то же самое // сделал
     }
 
     @Override
     public void onMessage(String s) {
-        System.out.println(s);
-        if (!new JSONObject(s).keySet().contains("subscribeCandlesResponse")) {
-            JSONObject response = new JSONObject(s).getJSONObject("candle");
-            Position position = positionService.getByUid(response
-                    .getString("instrumentUid"));
-            response = response.getJSONObject("close");
-            BigDecimal newNominal = BigDecimal.valueOf(response
-                            .getInt("units"))
-                    .add(BigDecimal.valueOf(response
-                            .getInt("nano"), 9));
-            position.setNominal(newNominal);
-            try {
-                positionService.updateOrCreate(position);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        JSONObject response = new JSONObject(s);
+        if (!response.isNull("subscribeCandlesResponse"))
+            return;
+        Position updatedPosition = handler.refreshPositionNominal(response);
+        handler.update(updatedPosition);
+        WebSocketMessage<String> message = new TextMessage(
+                new JSONObject(Map.of(
+                        "uid", updatedPosition.getUid(),
+                        "nominal", updatedPosition.getNominal()))
+                        .toString()
+        );
+        try {
+            handler.getSession().sendMessage(message);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-    }
+    } // убрать этот пиздец в мэсэдж хэндлер // убрал
+
 
     @Override
-    public void onClose(int i, String s, boolean b) {
-        LOGGER.info("Соединение закрыто");
+    public void onClose(int code, String reason, boolean remote) {
+        log.info("""
+                Соединение закрыто по причине {}.
+                Код {}.
+                """, reason, code);
     }
 
     @Override
     public void onError(Exception e) {
-        LOGGER.error(e.getMessage());
+        log.error(e.getMessage());
     }
 }

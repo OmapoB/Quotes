@@ -7,14 +7,14 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
-import ru.omarov.quotes.websocket.handlers.MyHandler;
+import ru.omarov.quotes.websocket.handlers.WebSocketPriceRefreshHandler;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(myHandler(), "/main")
+        registry.addHandler(createPriceRefreshHandler(), "/main")
                 .addInterceptors(new HttpSessionHandshakeInterceptor())
                 .setAllowedOriginPatterns("*");
     }
@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     }
 
     @Bean
-    public MyHandler myHandler() {
-        return new MyHandler();
+    public WebSocketPriceRefreshHandler createPriceRefreshHandler() {
+        return new WebSocketPriceRefreshHandler();
     }
 }

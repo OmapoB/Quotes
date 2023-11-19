@@ -1,65 +1,37 @@
 package ru.omarov.quotes.services;
 
 import com.google.protobuf.GeneratedMessageV3;
-import org.java_websocket.client.WebSocketClient;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Async;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketMessage;
 import ru.omarov.quotes.entity.Position;
 import ru.omarov.quotes.entity.PositionType;
+import ru.omarov.quotes.filtres.PositionFilter;
 import ru.omarov.quotes.repositories.PositionRepo;
-import ru.omarov.quotes.websocket.WebSocketClientImpl;
-import ru.omarov.quotes.websocket.handlers.MyHandler;
-import ru.omarov.quotes.websocket.requests.refrescandle.PositionUnit;
-import ru.omarov.quotes.websocket.requests.refrescandle.SubscribeCandlesRequest;
 import ru.tinkoff.piapi.contract.v1.MoneyValue;
 import ru.tinkoff.piapi.contract.v1.Quotation;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
-public class PositionService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PositionService.class);
-    private static final Integer MAX_POSITIONS_ON_PAGE = 300;
+@Slf4j
+public class PositionService extends AbstractService<Position> {
+    public static final Integer DEFAULT_POSITIONS_ON_PAGE = 20;
 
-    @Value("${token}")
-    private String token;
-    private final Environment env;
+    private final PositionRepo positionRepo;
 
-    private PositionRepo repos;
-
-    private MyHandler handler;
-
-
-    public PositionService(Environment env, PositionRepo repos, MyHandler handler) {
-        this.env = env;
-        this.repos = repos;
-        this.handler = handler;
+    public PositionService(PositionRepo positionRepo, PositionFilter positionFilter) {
+        this.positionRepo = positionRepo;
+        super.filter = positionFilter;
     }
 
 
     @Transactional
-    public <T extends GeneratedMessageV3> Position updateOrCreate(T position) {
+    public void updateOrCreate(GeneratedMessageV3 position) throws IllegalAccessException {
         Position newPosition = new Position();
 
-        newPosition.setType(Arrays.stream(PositionType.values())
-                .filter(s -> s.getaClass() == position.getClass())
-                .findFirst().orElse(null));
+        newPosition.setType(PositionType.getByType(position.getClass()).orElseThrow());
         newPosition
                 .setTicker(position.getField(position.getDescriptorForType()
                         .findFieldByName("ticker")).toString());
@@ -98,84 +70,18 @@ public class PositionService {
         newPosition
                 .setUid(position.getField(position.getDescriptorForType()
                         .findFieldByName("uid")).toString());
-        return repos.save(newPosition);
+        positionRepo.save(newPosition);
     }
 
-    public Position updateOrCreate(Position position) throws IOException {
-        WebSocketMessage<String> message = new TextMessage(
-                new JSONObject(Map.of(
-                        "uid", position.getUid(),
-                        "nominal", position.getNominal()))
-                        .toString()
-        );
-        handler.getSession().sendMessage(message);
-        return repos.save(position);
+    public void save(Position position) {
+        positionRepo.save(position);
     }
 
-    public Page<Position> getAll(Integer page, Integer elements) {
-        if (page == null) page = 0;
-        if (elements == null) elements = MAX_POSITIONS_ON_PAGE;
-        if (elements > MAX_POSITIONS_ON_PAGE)
-            throw new IllegalArgumentException("Количество элементов на странице не должно превышать "
-                    + MAX_POSITIONS_ON_PAGE);
-        return repos.findAll(PageRequest.of(page, elements));
-    }
-
-    public Page<Position> getByType(PositionType type, Integer page, Integer elements) {
-
-        return repos.findByType(type, PageRequest.of(page, elements));
+    public List<Position> getAll() {
+        return positionRepo.findAll();
     }
 
     public Position getByUid(String uid) {
-        return repos.findByUid(uid);
-    }
-
-    public Position getByName(String name) {
-        return repos.findByName(name);
-    }
-
-    public List<Position> getByTicker(String ticker) {
-        return repos.findByTicker(ticker);
-    }
-
-    public List<Position> getByCurrency(String currency) {
-        return repos.findByCurrency(currency);
-    }
-
-    public List<Position> getByExchange(String exchange) {
-        return repos.findByExchange(exchange);
-    }
-
-    public List<Position> getBySector(String sector) {
-        return repos.findBySector(sector);
-    }
-
-    public List<Position> getByNominal(BigDecimal price) {
-        return repos.findByNominal(price);
-    }
-
-    public Map<String, BigDecimal> getNominalListByUidList(List<String> uids) {
-        Map<String, BigDecimal> nominalList = new HashMap<>();
-        uids.forEach(uid -> nominalList.put(uid, repos.findByUid(uid).getNominal()));
-        return nominalList;
-    }
-
-    @Async
-    public CompletableFuture<WebSocketClient> subscribeOnPriceChangeByUid(List<String> uids)
-            throws URISyntaxException, InterruptedException {
-        System.out.println("________________________________________________________");
-        Map<String, String> headers = Map.of("Authorization", "Bearer " + token);
-        URI uri = new URI(Objects.requireNonNull(env.getProperty("uri.refresh.price")));
-        SubscribeCandlesRequest message = new SubscribeCandlesRequest();
-        message.getSubscribeCandlesRequest()
-                .setInstruments(uids
-                        .stream()
-                        .map(PositionUnit::new)
-                        .collect(Collectors.toList()));
-        WebSocketClient client = new WebSocketClientImpl(uri, headers, this);
-        System.out.println(message);
-        client.connectBlocking();
-        client.send(message.toString());
-        return CompletableFuture.completedFuture(client);
+        return positionRepo.findByUid(uid);
     }
 }

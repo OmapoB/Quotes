@@ -1,6 +1,10 @@
 package ru.omarov.quotes.entity;
 
+import com.google.protobuf.GeneratedMessageV3;
 import ru.tinkoff.piapi.contract.v1.*;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 public enum PositionType {
     BOND("Облигация", Bond.class),
@@ -11,18 +15,23 @@ public enum PositionType {
     SHARE("Акция", Share.class);
     private final String name;
 
-    private final Class aClass;
+    private final Class<? extends GeneratedMessageV3> type;
 
-    PositionType(String name, Class aClass) {
+    PositionType(String name, Class<? extends GeneratedMessageV3> type) {
         this.name = name;
-        this.aClass = aClass;
+        this.type = type;
     }
 
     public String getName() {
         return name;
     }
 
-    public Class getaClass() {
-        return aClass;
+    public Class<? extends GeneratedMessageV3> getType() {
+        return type;
+    }
+
+    public static Optional<PositionType> getByType(Class<? extends GeneratedMessageV3> cl) {
+        return Arrays.stream(PositionType.values()).filter(s -> s.getType() == cl).findFirst();
+
     }
 }
