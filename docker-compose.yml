@@ -1,13 +1,13 @@
 version: "3.8"
 services:
-  frontend:
+  client-frontend:
     image: front:latest
     build: ./qoutes_front
     restart: always
     ports:
       - "8000:8000"
 
-  backend:
+  client-backend:
     image: quotes:0.5
     build:
       context: .
@@ -15,12 +15,12 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - service-db
     environment:
       - SERVER_PORT=8080
       - SPRING_DATASOURCE_URL=jdbc:postgresql://service-db/postgres
 
-  db: #просто db
+  service-db: #просто db
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
